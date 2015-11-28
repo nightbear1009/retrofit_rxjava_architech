@@ -9,6 +9,7 @@ import retrofit.Retrofit;
 import retrofit.RxJavaCallAdapterFactory;
 import rx.Observable;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
@@ -37,19 +38,43 @@ public class MyAppClient {
 
         Observable<List<SimpleService.Contributor>> a = call.observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())
+                .flatMap(new Func1<List<SimpleService.Contributor>, Observable<SimpleService.Contributor>>() {
+                    @Override
+                    public Observable<SimpleService.Contributor> call(List<SimpleService.Contributor> contributors) {
+                        return Observable.from(contributors);
+                    }
+                })
+                .filter(new Func1<SimpleService.Contributor, Boolean>() {
+                    @Override
+                    public Boolean call(SimpleService.Contributor contributor) {
+                        return contributor.login.contains("JakeWharton");
+                    }
+                }).toList()
                 .doOnNext(new Action1<List<SimpleService.Contributor>>() {
                     @Override
                     public void call(List<SimpleService.Contributor> contributors) {
-                        Log.d("Ted", "login " + contributors.get(0).login);
-
+                        Log.d("Ted", "size " + contributors.size());
                     }
                 });
+
         Observable<List<SimpleService.Contributor>> b = call.observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())
+                .flatMap(new Func1<List<SimpleService.Contributor>, Observable<SimpleService.Contributor>>() {
+                    @Override
+                    public Observable<SimpleService.Contributor> call(List<SimpleService.Contributor> contributors) {
+                        return Observable.from(contributors);
+                    }
+                })
+                .filter(new Func1<SimpleService.Contributor, Boolean>() {
+                    @Override
+                    public Boolean call(SimpleService.Contributor contributor) {
+                        return contributor.contributions > 10;
+                    }
+                }).toList()
                 .doOnNext(new Action1<List<SimpleService.Contributor>>() {
                     @Override
                     public void call(List<SimpleService.Contributor> contributors) {
-                        Log.d("Ted", "contributations " + contributors.get(0).contributions);
+                        Log.d("Ted", "contributations " + contributors.size());
 
                     }
                 });
